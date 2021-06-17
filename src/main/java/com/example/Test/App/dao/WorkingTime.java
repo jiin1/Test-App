@@ -26,21 +26,8 @@ public class WorkingTime {
     @Column
     @JsonFormat(shape= JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime finishTime;
-    private Integer salary;
+    private Double salary;
     private Long totalSalary;
-
-//    @ManyToOne(fetch = FetchType.LAZY, cascade=CascadeType.ALL)
-//    @JsonManagedReference
-//    @JoinColumn (name = "workingTime_id")
-//    private Employee employee;
-//
-//    public Employee getEmployee() {
-//        return employee;
-//    }
-//
-//    public void setEmployee(Employee employee) {
-//        this.employee = employee;
-//    }
 
     public Long getId() {
         return id;
@@ -66,11 +53,11 @@ public class WorkingTime {
         this.finishTime = finishTime;
     }
 
-    public Integer getSalary() {
+    public Double getSalary() {
         return salary;
     }
 
-    public void setSalary(Integer salary) {
+    public void setSalary(Double salary) {
         this.salary = salary;
     }
 

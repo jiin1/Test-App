@@ -1,16 +1,20 @@
-package com.example.Test.App.service;
+package com.example.Test.App.service.impl;
 
 import com.example.Test.App.dao.Employee;
 import com.example.Test.App.dao.WorkingTime;
 import com.example.Test.App.repo.EmployeeRepo;
+import com.example.Test.App.service.EmployeeService;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.Timer;
+import java.util.TimerTask;
 
 @Service
-public class EmployeeServiceImpl implements com.example.Test.App.service.impl.EmployeeService {
+public class EmployeeServiceImpl implements EmployeeService {
     private final EmployeeRepo employeeRepo;
+
 
 
     public EmployeeServiceImpl(EmployeeRepo employeeRepo) {
@@ -42,6 +46,8 @@ public class EmployeeServiceImpl implements com.example.Test.App.service.impl.Em
         employeeRepo.save(employee);
 
 
+
+
         return "Your work is started on " + employee.getWorkingTimeList().get(employee.getWorkingTimeList().size() - 1).getStartTime();
     }
 
@@ -49,9 +55,8 @@ public class EmployeeServiceImpl implements com.example.Test.App.service.impl.Em
     public String finishWork(Employee employee) {
         employee.setActive(false);
         WorkingTime wor = employee.getWorkingTimeList().get(employee.getWorkingTimeList().size() - 1);
-        wor.setSalary(10000);
-        wor.setFinishTime(LocalDateTime.now());
 
+        wor.setFinishTime(LocalDateTime.now());
         employeeRepo.saveAndFlush(employee);
 
         return "Your work is finished on " + employee.getWorkingTimeList().get(employee.getWorkingTimeList().size() - 1).getFinishTime();

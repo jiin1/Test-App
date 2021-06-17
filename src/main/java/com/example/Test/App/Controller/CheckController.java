@@ -3,7 +3,9 @@ package com.example.Test.App.Controller;
 import com.example.Test.App.dao.Employee;
 import com.example.Test.App.dto.EmployeeDto;
 import com.example.Test.App.mapper.EmployeeMapper;
-import com.example.Test.App.service.impl.EmployeeService;
+import com.example.Test.App.service.EmployeeService;
+import com.example.Test.App.service.KafkaMessage;
+import com.example.Test.App.service.Producer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -17,10 +19,12 @@ public class CheckController {
 
 
     private final EmployeeService employeeService;
+    private final Producer producer;
 
     @Autowired
-    public CheckController(EmployeeService employeeService) {
+    public CheckController(EmployeeService employeeService, Producer producer) {
         this.employeeService = employeeService;
+        this.producer = producer;
     }
 
 
@@ -45,8 +49,10 @@ public class CheckController {
             if (employeeService.isPasswordValid(password, username)) {
                 if (opt.get().isActive()) {
                     return "You still working";
-                } else return employeeService.startWork(opt.get());
-
+                } else {
+                    this.producer.sendUser(new KafkaMessage(username, true));
+                    return employeeService.startWork(opt.get());
+                }
             }
             return "Wrong Password";
         } else throw new ResponseStatusException(
@@ -64,8 +70,11 @@ public class CheckController {
             if (employeeService.isPasswordValid(password, username)) {
                 if (!(opt.get().isActive())) {
                     return "You are not working now";
+                } else {
+
+                    producer.sendUser(new KafkaMessage(username,false));
+                    return employeeService.finishWork(opt.get());
                 }
-                return employeeService.finishWork(opt.get());
             }
             return "Wrong Password";
         } else throw new ResponseStatusException(

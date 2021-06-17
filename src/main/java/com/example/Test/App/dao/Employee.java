@@ -33,8 +33,7 @@ public class Employee {
     @JsonFormat(shape= JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime creationDate;
 
-    @OneToMany(fetch = FetchType.LAZY, cascade=CascadeType.ALL
-    )
+    @OneToMany(fetch = FetchType.EAGER, cascade=CascadeType.ALL )
     @JoinColumn(name = "employee_id")
     private List<WorkingTime> workingTimeList = new LinkedList<>();
 
