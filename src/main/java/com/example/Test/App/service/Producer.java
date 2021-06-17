@@ -20,4 +20,8 @@ public class Producer {
      kafkaTemplate.send(TOPIC, kafkaMessage);
  }
 
+
+    //      .\bin\windows\kafka-server-start.bat .\config\server.properties
+    //   .\bin\windows\zookeeper-server-start.bat .\config\zookeeper.properties
+
 }

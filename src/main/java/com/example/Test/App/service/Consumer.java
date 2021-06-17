@@ -17,47 +17,47 @@ import java.util.TimerTask;
 @Service
 public class Consumer {
     private final EmployeeRepo employeeRepo;
-    private final Timer timer = new Timer();
     private Double salary = 0.0;
+    Timer timer = new Timer(true);
 
     public Consumer(EmployeeRepo employeeRepo) {
         this.employeeRepo = employeeRepo;
     }
 
     @KafkaListener(topics = "first_topic", groupId = "group")
-    public void consumeUser(KafkaMessage kafkaMessage){
+    public void consumeUser(KafkaMessage kafkaMessage) {
         // получили username и isActive
-
-        Optional<Employee> opti = employeeRepo.findEmployeeByUsername(kafkaMessage.getUserName());
-        if(opti.isPresent()){
-            Employee employee = opti.get();
+        Optional<Employee> optional = employeeRepo.findEmployeeByUsername(kafkaMessage.getUserName());
+        if (optional.isPresent()) {
+            Employee employee = optional.get();
             WorkingTime wor = employee.getWorkingTimeList().get(employee.getWorkingTimeList().size() - 1);
-                if(kafkaMessage.getActive()){
-                 wor.setSalary((double) 0);
+            if (kafkaMessage.getActive()) {
+                wor.setSalary(0.0);
 
-                  timer.schedule(new TimerTask() {
+                timer.schedule(new TimerTask() {
                     @Override
                     public void run() {
                         salary += 1.0 / 6.0;
                     }
                 }, 1000, 1000);
 
-                  timer.schedule(new TimerTask() {
+                timer.schedule(new TimerTask() {
                     @Override
                     public void run() {
                         WorkingTime wor = employee.getWorkingTimeList().get(employee.getWorkingTimeList().size() - 1);
                         wor.setSalary(salary);
                         employeeRepo.saveAndFlush(employee);
-                       }
+                    }
                 }, 0, 10 * 1000);
 
-              }else{
+            } else {
                 wor.setSalary(salary);
                 employeeRepo.saveAndFlush(employee);
                 timer.cancel();
-                }
+
+            }
         }
-    //    System.out.println("получил юзера: "+kafkaMessage.toString());
+        //    System.out.println("получил юзера: "+kafkaMessage.toString());
 
 
     }
