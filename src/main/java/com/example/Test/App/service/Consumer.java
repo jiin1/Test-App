@@ -6,9 +6,13 @@ import com.example.Test.App.repo.EmployeeRepo;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicReference;
+
+import static java.util.concurrent.TimeUnit.SECONDS;
 
 /**
  * @author Andrew Yantsen
@@ -17,8 +21,10 @@ import java.util.TimerTask;
 @Service
 public class Consumer {
     private final EmployeeRepo employeeRepo;
-    private Double salary = 0.0;
-    Timer timer = new Timer(true);
+    private final Map<String, List<ScheduledFuture<?>>> timerMap = new HashMap<String, List<ScheduledFuture<?>>>();
+    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(12);
+
+    //   Timer timer = new Timer(true);
 
     public Consumer(EmployeeRepo employeeRepo) {
         this.employeeRepo = employeeRepo;
@@ -27,38 +33,39 @@ public class Consumer {
     @KafkaListener(topics = "first_topic", groupId = "group")
     public void consumeUser(KafkaMessage kafkaMessage) {
         // получили username и isActive
+        AtomicReference<Double> salary = new AtomicReference<>(0.0);
         Optional<Employee> optional = employeeRepo.findEmployeeByUsername(kafkaMessage.getUserName());
         if (optional.isPresent()) {
             Employee employee = optional.get();
             WorkingTime wor = employee.getWorkingTimeList().get(employee.getWorkingTimeList().size() - 1);
             if (kafkaMessage.getActive()) {
-                wor.setSalary(0.0);
+                wor.setSalary(salary.get());
 
-                timer.schedule(new TimerTask() {
-                    @Override
-                    public void run() {
-                        salary += 1.0 / 6.0;
-                    }
-                }, 1000, 1000);
+                Runnable runnable = () -> {
+                    NumberFormat formatter = new DecimalFormat();
+                    salary.updateAndGet(v -> v + 1.0 / 6.0);
+                    System.out.println("показания счетчика: " + formatter.format(salary.get()));
+                };
+                final ScheduledFuture<?> futureTimer = scheduler.scheduleAtFixedRate(runnable, 1, 1, SECONDS);
+                final ScheduledFuture<?> futureTimerRepo = scheduler.scheduleAtFixedRate(() -> {
+                    wor.setSalary(salary.get());
+                    employeeRepo.saveAndFlush(employee);
+                    System.out.println("записываем в базу зп: " + salary.get());
+                }, 0, 10, SECONDS);
+                List<ScheduledFuture<?>> listFuture = new ArrayList<>();
+                listFuture.add(futureTimer);
+                listFuture.add(futureTimerRepo);
 
-                timer.schedule(new TimerTask() {
-                    @Override
-                    public void run() {
-                        WorkingTime wor = employee.getWorkingTimeList().get(employee.getWorkingTimeList().size() - 1);
-                        wor.setSalary(salary);
-                        employeeRepo.saveAndFlush(employee);
-                    }
-                }, 0, 10 * 1000);
+                timerMap.put(kafkaMessage.getUserName(), listFuture);
+
 
             } else {
-                wor.setSalary(salary);
-                employeeRepo.saveAndFlush(employee);
-                timer.cancel();
+                List<ScheduledFuture<?>> listFuture = timerMap.get(kafkaMessage.getUserName());
+                for (ScheduledFuture<?> future : listFuture) {
+                    future.cancel(true);
+                }
 
             }
         }
-        //    System.out.println("получил юзера: "+kafkaMessage.toString());
-
-
     }
 }

@@ -55,7 +55,6 @@ public class EmployeeServiceImpl implements EmployeeService {
     public String finishWork(Employee employee) {
         employee.setActive(false);
         WorkingTime wor = employee.getWorkingTimeList().get(employee.getWorkingTimeList().size() - 1);
-
         wor.setFinishTime(LocalDateTime.now());
         employeeRepo.saveAndFlush(employee);
 
