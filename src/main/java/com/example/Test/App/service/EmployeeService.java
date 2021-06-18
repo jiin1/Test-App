@@ -9,7 +9,7 @@ public interface EmployeeService {
     Boolean isPasswordValid(Long password, String username);
     String startWork(Employee employee);
     String finishWork(Employee  employee);
-    Employee create (Employee employee);
+    void create (Employee employee);
 
 
 

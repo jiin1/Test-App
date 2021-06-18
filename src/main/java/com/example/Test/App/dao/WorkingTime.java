@@ -26,7 +26,7 @@ public class WorkingTime {
     @Column
     @JsonFormat(shape= JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime finishTime;
-    private Double salary;
+    private Long salary;
     private Long totalSalary;
 
     public Long getId() {
@@ -53,11 +53,11 @@ public class WorkingTime {
         this.finishTime = finishTime;
     }
 
-    public Double getSalary() {
+    public Long getSalary() {
         return salary;
     }
 
-    public void setSalary(Double salary) {
+    public void setSalary(Long salary) {
         this.salary = salary;
     }
 

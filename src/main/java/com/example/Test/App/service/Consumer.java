@@ -24,16 +24,13 @@ public class Consumer {
     private final Map<String, List<ScheduledFuture<?>>> timerMap = new HashMap<String, List<ScheduledFuture<?>>>();
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(12);
 
-    //   Timer timer = new Timer(true);
-
     public Consumer(EmployeeRepo employeeRepo) {
         this.employeeRepo = employeeRepo;
     }
 
     @KafkaListener(topics = "first_topic", groupId = "group")
     public void consumeUser(KafkaMessage kafkaMessage) {
-        // получили username и isActive
-        AtomicReference<Double> salary = new AtomicReference<>(0.0);
+        AtomicReference<Long> salary = new AtomicReference<>(0L);
         Optional<Employee> optional = employeeRepo.findEmployeeByUsername(kafkaMessage.getUserName());
         if (optional.isPresent()) {
             Employee employee = optional.get();
@@ -43,15 +40,15 @@ public class Consumer {
 
                 Runnable runnable = () -> {
                     NumberFormat formatter = new DecimalFormat();
-                    salary.updateAndGet(v -> v + 1.0 / 6.0);
+                    salary.updateAndGet(v -> v + 1000);
                     System.out.println("показания счетчика: " + formatter.format(salary.get()));
                 };
-                final ScheduledFuture<?> futureTimer = scheduler.scheduleAtFixedRate(runnable, 1, 1, SECONDS);
+                final ScheduledFuture<?> futureTimer = scheduler.scheduleAtFixedRate(runnable, 60, 60, SECONDS);
                 final ScheduledFuture<?> futureTimerRepo = scheduler.scheduleAtFixedRate(() -> {
                     wor.setSalary(salary.get());
                     employeeRepo.saveAndFlush(employee);
                     System.out.println("записываем в базу зп: " + salary.get());
-                }, 0, 10, SECONDS);
+                }, 0, 60 * 60, SECONDS);
                 List<ScheduledFuture<?>> listFuture = new ArrayList<>();
                 listFuture.add(futureTimer);
                 listFuture.add(futureTimerRepo);

@@ -10,18 +10,14 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class Producer {
- private static final String TOPIC = "first_topic";
+    private static final String TOPIC = "first_topic";
 
- @Autowired
-    private KafkaTemplate<String,KafkaMessage> kafkaTemplate;
+    @Autowired
+    private KafkaTemplate<String, KafkaMessage> kafkaTemplate;
 
- public void sendUser (KafkaMessage kafkaMessage){
+    public void sendUser(KafkaMessage kafkaMessage) {
 
-     kafkaTemplate.send(TOPIC, kafkaMessage);
- }
-
-
-    //      .\bin\windows\kafka-server-start.bat .\config\server.properties
-    //   .\bin\windows\zookeeper-server-start.bat .\config\zookeeper.properties
+        kafkaTemplate.send(TOPIC, kafkaMessage);
+    }
 
 }

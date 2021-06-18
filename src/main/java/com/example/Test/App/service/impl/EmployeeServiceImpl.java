@@ -8,8 +8,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
-import java.util.Timer;
-import java.util.TimerTask;
 
 @Service
 public class EmployeeServiceImpl implements EmployeeService {
@@ -44,10 +42,6 @@ public class EmployeeServiceImpl implements EmployeeService {
         wor.setStartTime(LocalDateTime.now());
         employee.setActive(true);
         employeeRepo.save(employee);
-
-
-
-
         return "Your work is started on " + employee.getWorkingTimeList().get(employee.getWorkingTimeList().size() - 1).getStartTime();
     }
 
@@ -57,16 +51,13 @@ public class EmployeeServiceImpl implements EmployeeService {
         WorkingTime wor = employee.getWorkingTimeList().get(employee.getWorkingTimeList().size() - 1);
         wor.setFinishTime(LocalDateTime.now());
         employeeRepo.saveAndFlush(employee);
-
         return "Your work is finished on " + employee.getWorkingTimeList().get(employee.getWorkingTimeList().size() - 1).getFinishTime();
     }
 
     @Override
-    public Employee create(Employee employee) {
+    public void create(Employee employee) {
         employee.setCreationDate(LocalDateTime.now());
         employee.setActive(false);
-
-
-        return employeeRepo.save(employee);
+        employeeRepo.save(employee);
     }
 }
