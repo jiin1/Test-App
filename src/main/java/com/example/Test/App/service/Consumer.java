@@ -10,6 +10,7 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -21,7 +22,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 @Service
 public class Consumer {
     private final EmployeeRepo employeeRepo;
-    private final Map<String, List<ScheduledFuture<?>>> timerMap = new HashMap<String, List<ScheduledFuture<?>>>();
+    private final Map<String, EmployeeHolder> timerMap = new ConcurrentHashMap<>();
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(12);
 
     public Consumer(EmployeeRepo employeeRepo) {
@@ -30,39 +31,51 @@ public class Consumer {
 
     @KafkaListener(topics = "first_topic", groupId = "group")
     public void consumeUser(KafkaMessage kafkaMessage) {
-        AtomicReference<Long> salary = new AtomicReference<>(0L);
+        System.out.println(Thread.currentThread());
+        AtomicLong salary = new AtomicLong(0L);
         Optional<Employee> optional = employeeRepo.findEmployeeByUsername(kafkaMessage.getUserName());
         if (optional.isPresent()) {
             Employee employee = optional.get();
             WorkingTime wor = employee.getWorkingTimeList().get(employee.getWorkingTimeList().size() - 1);
             if (kafkaMessage.getActive()) {
                 wor.setSalary(salary.get());
-
-                Runnable runnable = () -> {
-                    NumberFormat formatter = new DecimalFormat();
-                    salary.updateAndGet(v -> v + 1000);
-                    System.out.println("показания счетчика: " + formatter.format(salary.get()));
-                };
-                final ScheduledFuture<?> futureTimer = scheduler.scheduleAtFixedRate(runnable, 60, 60, SECONDS);
-                final ScheduledFuture<?> futureTimerRepo = scheduler.scheduleAtFixedRate(() -> {
-                    wor.setSalary(salary.get());
-                    employeeRepo.saveAndFlush(employee);
-                    System.out.println("записываем в базу зп: " + salary.get());
-                }, 0, 60 * 60, SECONDS);
-                List<ScheduledFuture<?>> listFuture = new ArrayList<>();
-                listFuture.add(futureTimer);
-                listFuture.add(futureTimerRepo);
-
-                timerMap.put(kafkaMessage.getUserName(), listFuture);
+                EmployeeHolder employeeHolder = new EmployeeHolder(employee);
+                timerMap.put(kafkaMessage.getUserName(), employeeHolder);
 
 
             } else {
-                List<ScheduledFuture<?>> listFuture = timerMap.get(kafkaMessage.getUserName());
-                for (ScheduledFuture<?> future : listFuture) {
-                    future.cancel(true);
-                }
+                EmployeeHolder employeeHolder = timerMap.get(kafkaMessage.getUserName());
+                employeeHolder.scheduledFuture1.cancel(true);
+                employeeHolder.scheduledFuture2.cancel(true);
+                wor.setSalary(employeeHolder.currentSalary.get());
+                employeeRepo.saveAndFlush(employeeHolder.employee);
 
             }
+        }
+    }
+
+    private class EmployeeHolder {
+        Employee employee;
+        AtomicLong currentSalary;
+        Runnable runnable;
+        WorkingTime wor;
+        ScheduledFuture<?> scheduledFuture1;
+        ScheduledFuture<?> scheduledFuture2;
+
+        public EmployeeHolder(Employee employee) {
+            this.employee = employee;
+            currentSalary = new AtomicLong(0);
+            wor = employee.getWorkingTimeList().get(employee.getWorkingTimeList().size() - 1);
+            runnable = () -> {
+                currentSalary.updateAndGet(v -> v + 1000);
+                System.out.println("показания счетчика: " + currentSalary.get());
+            };
+            scheduledFuture1 = scheduler.scheduleAtFixedRate(runnable, 1, 1, SECONDS);
+            scheduledFuture2 = scheduler.scheduleAtFixedRate(() -> {
+                wor.setSalary(currentSalary.get());
+                employeeRepo.saveAndFlush(employee);
+                System.out.println("записываем в базу зп: " + currentSalary.get());
+            }, 0, 10, SECONDS);
         }
     }
 }
