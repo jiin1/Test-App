@@ -71,7 +71,6 @@ public class CheckController {
                 if (!(opt.get().isActive())) {
                     return "You are not working now";
                 } else {
-
                     producer.sendUser(new KafkaMessage(username,false));
                     return employeeService.finishWork(opt.get());
                 }

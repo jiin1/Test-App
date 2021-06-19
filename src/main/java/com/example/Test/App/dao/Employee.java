@@ -9,6 +9,7 @@ import lombok.ToString;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -20,6 +21,13 @@ import java.util.Set;
 @ToString(of = {"name","surname","creationDate"})
 @EqualsAndHashCode(of= {"id"})
 public class Employee {
+    public Employee(String username, Long password, String name, String surname) {
+        this.username = username;
+        this.password = password;
+        this.name = name;
+        this.surname = surname;
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
@@ -35,7 +43,7 @@ public class Employee {
 
     @OneToMany(fetch = FetchType.EAGER, cascade=CascadeType.ALL )
     @JoinColumn(name = "employee_id")
-    private List<WorkingTime> workingTimeList = new LinkedList<>();
+    private List<WorkingTime> workingTimeList = new ArrayList<>();
 
     public List<WorkingTime> getWorkingTimeList() {
         return workingTimeList;

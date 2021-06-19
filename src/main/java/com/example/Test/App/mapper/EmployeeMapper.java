@@ -12,7 +12,6 @@ public interface EmployeeMapper {
     EmployeeMapper MAPPER = Mappers.getMapper(EmployeeMapper.class);
 
     @Mappings({
-            @Mapping(target = "id", source = "id"),
             @Mapping(target = "username", source = "username"),
             @Mapping(target = "password", source = "password"),
             @Mapping(target = "name", source = "name"),

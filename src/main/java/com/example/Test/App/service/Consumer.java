@@ -8,6 +8,8 @@ import org.springframework.stereotype.Service;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
@@ -47,9 +49,9 @@ public class Consumer {
                 EmployeeHolder employeeHolder = timerMap.get(kafkaMessage.getUserName());
                 employeeHolder.scheduledFuture1.cancel(true);
                 employeeHolder.scheduledFuture2.cancel(true);
-                wor.setSalary(employeeHolder.currentSalary.get());
-                employeeRepo.saveAndFlush(employeeHolder.employee);
-
+                Employee employeeRepo1 = employeeRepo.findEmployeeByUsername(kafkaMessage.getUserName()).get();
+                employeeRepo1.getWorkingTimeList().get(employeeRepo1.getWorkingTimeList().size() - 1).setSalary(employeeHolder.currentSalary.get());
+                employeeRepo.saveAndFlush(employeeRepo1);
             }
         }
     }
@@ -70,12 +72,12 @@ public class Consumer {
                 currentSalary.updateAndGet(v -> v + 1000);
                 System.out.println("показания счетчика: " + currentSalary.get());
             };
-            scheduledFuture1 = scheduler.scheduleAtFixedRate(runnable, 1, 1, SECONDS);
+            scheduledFuture1 = scheduler.scheduleAtFixedRate(runnable, 60, 60, SECONDS);
             scheduledFuture2 = scheduler.scheduleAtFixedRate(() -> {
                 wor.setSalary(currentSalary.get());
                 employeeRepo.saveAndFlush(employee);
                 System.out.println("записываем в базу зп: " + currentSalary.get());
-            }, 0, 10, SECONDS);
+            }, 0, 60*60, SECONDS);
         }
     }
 }
