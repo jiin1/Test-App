@@ -33,7 +33,6 @@ public class Consumer {
 
     @KafkaListener(topics = "first_topic", groupId = "group")
     public void consumeUser(KafkaMessage kafkaMessage) {
-        System.out.println(Thread.currentThread());
         AtomicLong salary = new AtomicLong(0L);
         Optional<Employee> optional = employeeRepo.findEmployeeByUsername(kafkaMessage.getUserName());
         if (optional.isPresent()) {
@@ -70,13 +69,11 @@ public class Consumer {
             wor = employee.getWorkingTimeList().get(employee.getWorkingTimeList().size() - 1);
             runnable = () -> {
                 currentSalary.updateAndGet(v -> v + 1000);
-                System.out.println("показания счетчика: " + currentSalary.get());
             };
             scheduledFuture1 = scheduler.scheduleAtFixedRate(runnable, 60, 60, SECONDS);
             scheduledFuture2 = scheduler.scheduleAtFixedRate(() -> {
                 wor.setSalary(currentSalary.get());
                 employeeRepo.saveAndFlush(employee);
-                System.out.println("записываем в базу зп: " + currentSalary.get());
             }, 0, 60*60, SECONDS);
         }
     }
