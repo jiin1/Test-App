@@ -1,5 +1,6 @@
 package com.example.Test.App.service;
 
+import com.example.Test.App.TestAppApplication;
 import com.example.Test.App.dao.Employee;
 import com.example.Test.App.dao.WorkingTime;
 import com.example.Test.App.repo.EmployeeRepo;
@@ -14,6 +15,7 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.logging.Logger;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 
@@ -23,6 +25,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 
 @Service
 public class Consumer {
+    public static final Logger logger = Logger.getLogger(Consumer.class.getName());
     private final EmployeeRepo employeeRepo;
     private final Map<String, EmployeeHolder> timerMap = new ConcurrentHashMap<>();
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(12);
@@ -33,24 +36,30 @@ public class Consumer {
 
     @KafkaListener(topics = "first_topic", groupId = "group")
     public void consumeUser(KafkaMessage kafkaMessage) {
+        logger.info("Получили пользвателя "+kafkaMessage.getUserName() +" в Consumer" );
         AtomicLong salary = new AtomicLong(0L);
         Optional<Employee> optional = employeeRepo.findEmployeeByUsername(kafkaMessage.getUserName());
         if (optional.isPresent()) {
             Employee employee = optional.get();
             WorkingTime wor = employee.getWorkingTimeList().get(employee.getWorkingTimeList().size() - 1);
             if (kafkaMessage.getActive()) {
+                logger.info("Устанавливаем стартовое значение заработанных денег");
                 wor.setSalary(salary.get());
+                logger.info("Создаем сущность содержащую счетчики");
                 EmployeeHolder employeeHolder = new EmployeeHolder(employee);
+                logger.info("Ассоциируем сущность с конкретным пользователем");
                 timerMap.put(kafkaMessage.getUserName(), employeeHolder);
 
 
             } else {
+                logger.info("Находим счетчики по логину "+employee.getUsername());
                 EmployeeHolder employeeHolder = timerMap.get(kafkaMessage.getUserName());
+                logger.info("Останавливаем счетчики у "+employee.getUsername());
                 employeeHolder.scheduledFuture1.cancel(true);
                 employeeHolder.scheduledFuture2.cancel(true);
-                Employee employeeRepo1 = employeeRepo.findEmployeeByUsername(kafkaMessage.getUserName()).get();
-                employeeRepo1.getWorkingTimeList().get(employeeRepo1.getWorkingTimeList().size() - 1).setSalary(employeeHolder.currentSalary.get());
-                employeeRepo.saveAndFlush(employeeRepo1);
+                logger.info("Записываем финальное значение зарплаты за последний отработанный промежуток времени");
+                employee.getWorkingTimeList().get(employee.getWorkingTimeList().size() - 1).setSalary(employeeHolder.currentSalary.get());
+                employeeRepo.saveAndFlush(employee);
             }
         }
     }
@@ -70,8 +79,10 @@ public class Consumer {
             runnable = () -> {
                 currentSalary.updateAndGet(v -> v + 1000);
             };
+            logger.info("Запуск счетчика зарплаты");
             scheduledFuture1 = scheduler.scheduleAtFixedRate(runnable, 60, 60, SECONDS);
             scheduledFuture2 = scheduler.scheduleAtFixedRate(() -> {
+                logger.info("Запись зарплаты в БД для " +employee.getUsername());
                 wor.setSalary(currentSalary.get());
                 employeeRepo.saveAndFlush(employee);
             }, 0, 60*60, SECONDS);

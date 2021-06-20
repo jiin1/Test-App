@@ -3,6 +3,10 @@ package com.example.Test.App.dto;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * @author Andrew Yantsen
+ */
+
 @Getter
 @Setter
 public class EmployeeDto {

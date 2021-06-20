@@ -7,6 +7,10 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Mappings;
 import org.mapstruct.factory.Mappers;
 
+/**
+ * @author Andrew Yantsen
+ */
+
 @Mapper
 public interface EmployeeMapper {
     EmployeeMapper MAPPER = Mappers.getMapper(EmployeeMapper.class);

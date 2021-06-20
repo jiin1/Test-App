@@ -9,6 +9,9 @@ import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.Set;
 
+/**
+ * @author Andrew Yantsen
+ */
 
 @AllArgsConstructor
 @NoArgsConstructor

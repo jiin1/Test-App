@@ -3,6 +3,7 @@ package com.example.Test.App.service;
 /**
  * @author Andrew Yantsen
  */
+
 public class KafkaMessage {
    private String userName;
    private Boolean isActive;
