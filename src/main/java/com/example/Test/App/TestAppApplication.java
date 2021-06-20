@@ -18,17 +18,18 @@ import java.util.logging.Logger;
 @SpringBootApplication
 @EnableSwagger2
 public class TestAppApplication implements CommandLineRunner {
-	@Autowired
-	EmployeeRepo employeeRepo;
-	public static final Logger logger = Logger.getLogger(TestAppApplication.class.getName());
-	public static void main(String[] args) {
-		SpringApplication.run(TestAppApplication.class, args);
-	}
+    @Autowired
+    EmployeeRepo employeeRepo;
+    public static final Logger logger = Logger.getLogger(TestAppApplication.class.getName());
 
-	public void run(String... args) throws Exception {
-		logger.info("Создаем в БД 100 тестовых пользователей");
-		for(int i = 0;i<=100;i++)
-		employeeRepo.save(new Employee(String.valueOf(i), (long) 1,"Boris"+ i,"TheBlade"+i));
+    public static void main(String[] args) {
+        SpringApplication.run(TestAppApplication.class, args);
+    }
 
-	}
+    public void run(String... args) throws Exception {
+        logger.info("Создаем в БД 100 тестовых пользователей");
+        for (int i = 0; i <= 100; i++)
+            employeeRepo.save(new Employee(String.valueOf(i), (long) 1, "Boris" + i, "TheBlade" + i));
+
+    }
 }

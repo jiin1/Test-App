@@ -27,7 +27,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 public class Consumer {
     public static final Logger logger = Logger.getLogger(Consumer.class.getName());
     private final EmployeeRepo employeeRepo;
-    private final Map<String, EmployeeHolder> timerMap = new ConcurrentHashMap<>();
+    private final Map<String, EmployeeHolder> timerMap = new HashMap<>();
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(12);
 
     public Consumer(EmployeeRepo employeeRepo) {
@@ -36,7 +36,7 @@ public class Consumer {
 
     @KafkaListener(topics = "first_topic", groupId = "group")
     public void consumeUser(KafkaMessage kafkaMessage) {
-        logger.info("Получили пользвателя "+kafkaMessage.getUserName() +" в Consumer" );
+        logger.info("Получили пользвателя " + kafkaMessage.getUserName() + " в Consumer");
         AtomicLong salary = new AtomicLong(0L);
         Optional<Employee> optional = employeeRepo.findEmployeeByUsername(kafkaMessage.getUserName());
         if (optional.isPresent()) {
@@ -52,9 +52,9 @@ public class Consumer {
 
 
             } else {
-                logger.info("Находим счетчики по логину "+employee.getUsername());
+                logger.info("Находим счетчики по логину " + employee.getUsername());
                 EmployeeHolder employeeHolder = timerMap.get(kafkaMessage.getUserName());
-                logger.info("Останавливаем счетчики у "+employee.getUsername());
+                logger.info("Останавливаем счетчики у " + employee.getUsername());
                 employeeHolder.scheduledFuture1.cancel(true);
                 employeeHolder.scheduledFuture2.cancel(true);
                 logger.info("Записываем финальное значение зарплаты за последний отработанный промежуток времени");
@@ -82,10 +82,10 @@ public class Consumer {
             logger.info("Запуск счетчика зарплаты");
             scheduledFuture1 = scheduler.scheduleAtFixedRate(runnable, 60, 60, SECONDS);
             scheduledFuture2 = scheduler.scheduleAtFixedRate(() -> {
-                logger.info("Запись зарплаты в БД для " +employee.getUsername());
+                logger.info("Запись зарплаты в БД для " + employee.getUsername());
                 wor.setSalary(currentSalary.get());
                 employeeRepo.saveAndFlush(employee);
-            }, 0, 60*60, SECONDS);
+            }, 0, 60 * 60, SECONDS);
         }
     }
 }

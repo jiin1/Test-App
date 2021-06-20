@@ -10,12 +10,14 @@ import java.util.Optional;
 
 public interface EmployeeService {
     Optional<Employee> findEmployeeByUsername(String username);
+
     Boolean isPasswordValid(Long password, String username);
+
     String startWork(Employee employee);
-    String finishWork(Employee  employee);
-    void create (Employee employee);
 
+    String finishWork(Employee employee);
 
+    void create(Employee employee);
 
 
 }

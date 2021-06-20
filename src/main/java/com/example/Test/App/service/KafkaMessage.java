@@ -5,8 +5,8 @@ package com.example.Test.App.service;
  */
 
 public class KafkaMessage {
-   private String userName;
-   private Boolean isActive;
+    private String userName;
+    private Boolean isActive;
 
     public KafkaMessage(String userName, Boolean isActive) {
         this.userName = userName;

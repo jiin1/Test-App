@@ -1,7 +1,6 @@
 package com.example.Test.App.dao;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -10,9 +9,7 @@ import lombok.ToString;
 import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 
 /**
  * @author Andrew Yantsen
@@ -22,8 +19,8 @@ import java.util.Set;
 @NoArgsConstructor
 @Entity
 @Table
-@ToString(of = {"name","surname","creationDate"})
-@EqualsAndHashCode(of= {"id"})
+@ToString(of = {"name", "surname", "creationDate"})
+@EqualsAndHashCode(of = {"id"})
 public class Employee {
     public Employee(String username, Long password, String name, String surname) {
         this.username = username;
@@ -42,10 +39,10 @@ public class Employee {
     private boolean isActive;
 
     @Column(updatable = false)
-    @JsonFormat(shape= JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime creationDate;
 
-    @OneToMany(fetch = FetchType.EAGER, cascade=CascadeType.ALL )
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinColumn(name = "employee_id")
     private List<WorkingTime> workingTimeList = new ArrayList<>();
 

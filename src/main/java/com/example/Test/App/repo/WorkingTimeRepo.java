@@ -8,5 +8,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
  * @author Andrew Yantsen
  */
 
-public interface WorkingTimeRepo  extends JpaRepository<WorkingTime,Long> {
+public interface WorkingTimeRepo extends JpaRepository<WorkingTime, Long> {
 }

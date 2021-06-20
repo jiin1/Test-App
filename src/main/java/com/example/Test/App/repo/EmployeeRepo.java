@@ -9,7 +9,7 @@ import java.util.Optional;
  * @author Andrew Yantsen
  */
 
-public interface EmployeeRepo extends JpaRepository<Employee,Long> {
+public interface EmployeeRepo extends JpaRepository<Employee, Long> {
     Optional<Employee> findEmployeeByUsername(String username);
 
 }
