@@ -30,4 +30,4 @@
  
  
  
- т.е. у нас получается Spring boot, Postgres, swagger, multithreading.
+ т.е. у нас получается Spring boot, Postgres, swagger, multithreading, kafka, Hibernate, Maven
